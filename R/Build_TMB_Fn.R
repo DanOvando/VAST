@@ -39,12 +39,12 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Method="Mesh",
   ConvergeTol=1, Use_REML=FALSE, loc_x=NULL, Parameters="generate", Random="generate", Map="generate",
   DiagnosticDir=NULL, TmbDir=system.file("executables",package="VAST"), RunDir=getwd() ){
-                                            
+
   # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
   file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(RunDir,"/",Version,".cpp"), overwrite=FALSE)
-  setwd( RunDir )
-  compile( paste0(Version,".cpp") )
+  # setwd( RunDir )
+  TMB::compile( paste0(RunDir,Version,".cpp") )
 
   # Local functions
   boundsifpresent_fn = function( par, map, name, lower, upper, bounds ){
@@ -53,7 +53,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
     }
     return( bounds )
   }
-  
+
   # Parameters
     # DataList=TmbData                                              # VAST:::
   if( length(Parameters)==1 && Parameters=="generate" ) Parameters = Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
@@ -82,7 +82,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   #save(Save, file=paste0(RunDir,"/Save.RData"))
 
   # Build object
-  dyn.load( paste0(RunDir,"/",TMB::dynlib(Version)) ) # random=Random,
+  dyn.load( paste0(RunDir,TMB::dynlib(Version)) ) # random=Random,
   Obj <- MakeADFun(data=TmbData, parameters=Parameters, hessian=FALSE, map=Map, random=Random, inner.method="newton", DLL=Version)  #
   Obj$control <- list(trace=1, parscale=1, REPORT=1, reltol=1e-12, maxit=100)
 
@@ -101,7 +101,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
     }
     utils::write.table( matrix(Obj$par,nrow=1), row.names=FALSE, sep=",", col.names=FALSE, file=paste0(DiagnosticDir,"trace.csv"))
   }
-  
+
   # Declare upper and lower bounds for parameter search
   Bounds = matrix( NA, ncol=2, nrow=length(Obj$par), dimnames=list(names(Obj$par),c("Lower","Upper")) )
   Bounds[,'Lower'] = rep(-50, length(Obj$par))
