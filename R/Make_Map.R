@@ -14,31 +14,31 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
   # Create tagged-list in TMB format for fixing parameters
   Map = list()
   # Configurations of spatial and spatiotemporal error
-  if(TmbData[["FieldConfig"]]['Omega1']<0){
+  if(TmbData[["FieldConfig"]]['Omega1'] == -1){
     if("Omegainput1_sc" %in% names(TmbParams)) Map[["Omegainput1_sc"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput1_sc"]])) )
     if("Omegainput1_sf" %in% names(TmbParams)) Map[["Omegainput1_sf"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput1_sf"]])) )
     if("L_omega1_z" %in% names(TmbParams)) Map[["L_omega1_z"]] = factor( rep(NA,length(TmbParams[["L_omega1_z"]])) )
   }
-  if(TmbData[["FieldConfig"]]['Epsilon1']<0){
+  if(TmbData[["FieldConfig"]]['Epsilon1'] == -1){
     if("Epsiloninput1_sct" %in% names(TmbParams)) Map[["Epsiloninput1_sct"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sct"]])) )
     if("Epsiloninput1_sft" %in% names(TmbParams)) Map[["Epsiloninput1_sft"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput1_sft"]])) )
     if("L_epsilon1_z" %in% names(TmbParams)) Map[["L_epsilon1_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon1_z"]])) )
   }
-  if(TmbData[["FieldConfig"]]['Omega1']<0 & TmbData[["FieldConfig"]]['Epsilon1']<0){
+  if(TmbData[["FieldConfig"]]['Omega1'] == -1 & TmbData[["FieldConfig"]]['Epsilon1'] == -1){
     Map[["logkappa1"]] = factor(NA)
     if("rho_c1" %in% names(TmbParams)) Map[["rho_c1"]] = factor(NA)
   }
-  if(TmbData[["FieldConfig"]]['Omega2']<0){
+  if(TmbData[["FieldConfig"]]['Omega2'] == -1){
     if("Omegainput2_sc" %in% names(TmbParams)) Map[["Omegainput2_sc"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput2_sc"]])) )
     if("Omegainput2_sf" %in% names(TmbParams)) Map[["Omegainput2_sf"]] = factor( array(NA,dim=dim(TmbParams[["Omegainput2_sf"]])) )
     if("L_omega2_z" %in% names(TmbParams)) Map[["L_omega2_z"]] = factor( rep(NA,length(TmbParams[["L_omega2_z"]])) )
   }
-  if(TmbData[["FieldConfig"]]['Epsilon2']<0){
+  if(TmbData[["FieldConfig"]]['Epsilon2'] == -1){
     if("Epsiloninput2_sct" %in% names(TmbParams)) Map[["Epsiloninput2_sct"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sct"]])) )
     if("Epsiloninput2_sft" %in% names(TmbParams)) Map[["Epsiloninput2_sft"]] = factor( array(NA,dim=dim(TmbParams[["Epsiloninput2_sft"]])) )
     if("L_epsilon2_z" %in% names(TmbParams)) Map[["L_epsilon2_z"]] = factor( rep(NA,length(TmbParams[["L_epsilon2_z"]])) )
   }
-  if(TmbData[["FieldConfig"]]['Omega2']<0 & TmbData[["FieldConfig"]]['Epsilon2']<0){
+  if(TmbData[["FieldConfig"]]['Omega2'] == -1 & TmbData[["FieldConfig"]]['Epsilon2'] == -1){
     Map[["logkappa2"]] = factor(NA)
     if("rho_c2" %in% names(TmbParams)) Map[["rho_c2"]] = factor(NA)
   }
@@ -58,13 +58,23 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
     if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( matrix(NA,nrow=TmbData$n_c,ncol=3) )
     if(TmbData[["ObsModel"]][2]!=0) stop("ObsModel[1]=6 or 7 should use ObsModel[2]=0")
   }
-  if(TmbData[["ObsModel"]][1]%in%c(8)){
+  if(TmbData[["ObsModel"]][1]%in%c(8,10)){
     if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA) )
     if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( cbind(seq(1,TmbData$n_c),NA,NA) )
-    if(TmbData[["ObsModel"]][2]!=2) stop("ObsModel[1]=8 should use ObsModel[2]=2")
+    if(TmbData[["ObsModel"]][2]!=2) stop("ObsModel[1]=8 and ObsModel[1]=10 should use ObsModel[2]=2")
+  }
+  if(TmbData[["ObsModel"]][1]%in%c(9)){
+    if(ncol(TmbParams[["logSigmaM"]])==2) Map[["logSigmaM"]] = factor( matrix(NA, nrow=TmbData$n_c, ncol=2) )
+    if(ncol(TmbParams[["logSigmaM"]])==3) Map[["logSigmaM"]] = factor( matrix(NA, nrow=TmbData$n_c, ncol=3) )
+  }
+  if( length(TmbData[["ObsModel"]])==2 && TmbData[["ObsModel"]][2]%in%c(3) ){
+    Tmp_ct = tapply(ifelse(TmbData$b_i>0,1,0), INDEX=list(factor(TmbData$c_i,levels=sort(unique(TmbData$c_i))),TmbData$t_i), FUN=mean)
+    Map[["beta1_ct"]] = array( 1:prod(dim(Tmp_ct)), dim=dim(Tmp_ct) )
+    Map[["beta1_ct"]][which(is.na(Tmp_ct) | Tmp_ct==1)] = NA
+    Map[["beta1_ct"]] = factor(Map[["beta1_ct"]])
   }
   # Anisotropy
-  if(TmbData[["Options_vec"]]["Aniso"]==0 | all(TmbData[["FieldConfig"]]<0)) Map[['ln_H_input']] = factor( rep(NA,2) )
+  if(TmbData[["Options_vec"]]["Aniso"]==0 | all(TmbData[["FieldConfig"]] == -1)) Map[['ln_H_input']] = factor( rep(NA,2) )
   
   # Beta1 -- Fixed
   if( RhoConfig["Beta1"]==0){
@@ -182,11 +192,11 @@ function( TmbData, TmbParams, CovConfig=TRUE, DynCovConfig=TRUE, Q_Config=TRUE, 
     Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
   }
   if( ("OverdispersionConfig"%in%names(TmbData)) && "n_v"%in%names(TmbData) ){
-    if( TmbData[["OverdispersionConfig"]][1] < 0 ){
+    if( TmbData[["OverdispersionConfig"]][1] == -1 ){
       Map[["L1_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
       Map[["eta1_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta1_vf"]])))
     }
-    if( TmbData[["OverdispersionConfig"]][2] < 0 ){
+    if( TmbData[["OverdispersionConfig"]][2] == -1 ){
       Map[["L2_z"]] = factor(rep(NA,length(TmbParams[["L1_z"]])))
       Map[["eta2_vf"]] = factor(array(NA,dim=dim(TmbParams[["eta2_vf"]])))
     }

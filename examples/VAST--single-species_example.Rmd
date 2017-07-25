@@ -84,7 +84,7 @@ Data_Set = c("Chatham_rise_hake", "Iceland_cod", "WCGBTS_canary", "GSL_american_
 
 Next use latest version for CPP code
 ```{r}
-Version = "VAST_v2_4_0"
+Version = "VAST_v2_5_0"
 ```
 
 ## Spatial settings
@@ -148,7 +148,6 @@ if( Data_Set %in% c("Iceland_cod")){
   strata.limits = data.frame( 'STRATA'="All_areas" )
   # Turn off all spatial, temporal, and spatio-temporal variation in probability of occurrence, because they occur almost everywhere
   FieldConfig = c("Omega1"=0, "Epsilon1"=0, "Omega2"=1, "Epsilon2"=1)
-  RhoConfig = c("Beta1"=3, "Beta2"=0, "Epsilon1"=0, "Epsilon2"=0) 
 }
 ```
 
@@ -190,7 +189,7 @@ capture.output( Record, file=paste0(DateFile,"Record.txt"))
 ## Data-frame for catch-rate data
 
 Depending upon the `Data_Set` chosen, we load archived data sets that are distributed with the package. Each archived data set is then reformatted to create a data-frame `Data_Geostat` with a standardized set of columns. For a new data set, the user is responsible for formatting `Data_Geostat` appropriately to match this format.  We show the first six rows of `Data_Geostat` given that Data_Set = `Data_Set`.  
-```{r load_data, echo=FALSE, message=FALSE}
+```{r load_data, message=FALSE, tidy=TRUE, linewidth=50}
 if(Data_Set=="WCGBTS_canary"){
   data( WCGBTS_Canary_example, package="SpatialDeltaGLMM" )
   Year = as.numeric(sapply(WCGBTS_Canary_example[,'PROJECT_CYCLE'], FUN=function(Char){strsplit(as.character(Char)," ")[[1]][2]}))
@@ -298,7 +297,7 @@ Obj = TmbList[["Obj"]]
 
 Next, we use a gradient-based nonlinear minimizer to identify maximum likelihood estimates for fixed-effects
 ```{r estimate_parameters, results="hide", tidy=TRUE}
-Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=FALSE )
+Opt = TMBhelper::Optimize( obj=Obj, lower=TmbList[["Lower"]], upper=TmbList[["Upper"]], getsd=TRUE, savedir=DateFile, bias.correct=FALSE, newtonsteps=1 )
 ```
 
 Finally, we bundle and save output
