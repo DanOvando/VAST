@@ -20,7 +20,7 @@ html_document:
 # Width should apply to tidy
 # digits hopefully affects number of digits when using print
 options(width=50, width.cutoff=50, digits = 3) 
-install.packages("pander", repos="http://cran.us.r-project.org")
+#install.packages("pander", repos="http://cran.us.r-project.org")
 ```
 
 ```{r wrap-hook, echo=FALSE}
@@ -48,8 +48,8 @@ This tutorial will walk through a simple example of how to use `VAST` for estima
 
 To install TMB on a windows machine, we need to first install [Rtools](https://cran.r-project.org/bin/windows/Rtools/).  During the installation, please select the option to have Rtools included in your system path.  On other operating systems, it is not necessary to install Rtools.  We then install `VAST`  
 ```{r load_packages, message=FALSE}
-devtools::install_github("james-thorson/VAST") 
-devtools::install_github("james-thorson/utilities")
+# devtools::install_github("james-thorson/VAST") 
+# devtools::install_github("james-thorson/utilities")
 ```
 
 Next load libraries.
@@ -394,6 +394,11 @@ Dens_xt = SpatialDeltaGLMM::PlotResultsOnMap_Fn(plot_set=c(3), MappingDetails=Ma
 We can also extract density predictions at different locations, for use or plotting in other software. This is output in UTM using zone `r Extrapolation_List$zone-ifelse(Extrapolation_List$flip_around_dateline,30,0)`
 ```{r calc_density_dataframe, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=50}
 Dens_DF = cbind( "Density"=as.vector(Dens_xt), "Year"=Year_Set[col(Dens_xt)], "E_km"=Spatial_List$MeshList$loc_x[row(Dens_xt),'E_km'], "N_km"=Spatial_List$MeshList$loc_x[row(Dens_xt),'N_km'] )
+
+Dens_DF %>% 
+  as_data_frame() %>% 
+  group_by(Year) %>% 
+  summarise(ns = length(Density))
 ```
 
 ```{r show_density_head, results="asis", echo=FALSE}
