@@ -1,21 +1,18 @@
-$Data_Set
-[1] "EBS_pollock"
-
 $Version
-[1] "VAST_v2_4_0"
+[1] "VAST_v2_0_0"
 
 $Method
 [1] "Mesh"
 
 $grid_size_km
-[1] 25
+[1] 50
 
 $n_x
-[1] 100
+[1] 50
 
 $FieldConfig
   Omega1 Epsilon1   Omega2 Epsilon2 
-       1        1        1        1 
+       3        3        3        3 
 
 $RhoConfig
    Beta1    Beta2 Epsilon1 Epsilon2 
@@ -38,4 +35,15 @@ $Kmeans_Config$nstart
 $Kmeans_Config$iter.max
 [1] 1000
 
+
+$Region
+[1] "Eastern_Bering_Sea"
+
+$Species_set
+[1] "Atheresthes stomias"       "Gadus chalcogrammus"      
+[3] "Hippoglossoides elassodon"
+
+$strata.limits
+     STRATA
+1 All_areas
 
