@@ -39,10 +39,13 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Method="Mesh",
   ConvergeTol=1, Use_REML=FALSE, loc_x=NULL, Parameters="generate", Random="generate", Map="generate",
   DiagnosticDir=NULL, TmbDir=system.file("executables",package="VAST"), RunDir=getwd() ){
-                                            
+
   # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
   file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(RunDir,"/",Version,".cpp"), overwrite=FALSE)
+
+  CurDir = getwd()
+
   setwd( RunDir )
   compile( paste0(Version,".cpp") )
 
@@ -53,7 +56,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
     }
     return( bounds )
   }
-  
+
   # Parameters
     # DataList=TmbData                                              # VAST:::
   if( length(Parameters)==1 && Parameters=="generate" ) Parameters = Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
@@ -101,7 +104,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
     }
     utils::write.table( matrix(Obj$par,nrow=1), row.names=FALSE, sep=",", col.names=FALSE, file=paste0(DiagnosticDir,"trace.csv"))
   }
-  
+
   # Declare upper and lower bounds for parameter search
   Bounds = matrix( NA, ncol=2, nrow=length(Obj$par), dimnames=list(names(Obj$par),c("Lower","Upper")) )
   Bounds[,'Lower'] = rep(-50, length(Obj$par))
@@ -149,6 +152,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   ThorsonUtilities::list_parameters( Obj )
 
   # Return stuff
+  setwd(CurDir)
   Return = list("Obj"=Obj, "Upper"=Bounds[,'Upper'], "Lower"=Bounds[,'Lower'], "Parameters"=Parameters, "Map"=Map, "Random"=Random)
   return( Return )
 }
