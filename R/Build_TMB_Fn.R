@@ -39,13 +39,38 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   RhoConfig=c("Beta1"=0,"Beta2"=0,"Epsilon1"=0,"Epsilon2"=0), Method="Mesh",
   ConvergeTol=1, Use_REML=FALSE, loc_x=NULL, Parameters="generate", Random="generate", Map="generate",
   DiagnosticDir=NULL, TmbDir=system.file("executables",package="VAST"), RunDir=getwd() ){
+<<<<<<< HEAD
+=======
+                                            
+  # Augment objects in TmbData (to deal with backwards compatibility)
+  if( !("n_e" %in% names(TmbData)) ){
+    TmbData[["n_e"]] = TmbData$n_c
+  }
+  if( !("ObsModel_ez" %in% names(TmbData)) ){
+    TmbData[["ObsModel_ez"]] = rep(1,TmbData[["n_e"]]) %o% TmbData$ObsModel
+  }
+  if( !("c_iz" %in% names(TmbData)) ){
+    TmbData[["c_iz"]] = matrix( TmbData$c_i, ncol=1 )
+  }
+  if( !("e_i" %in% names(TmbData)) ){
+    TmbData[["e_i"]] = TmbData$c_iz[,1]
+  }
+  if( !("t_iz" %in% names(TmbData)) ){
+    TmbData[["t_iz"]] = matrix( TmbData$t_i, ncol=1 )
+  }
+>>>>>>> James-Thorson/master
 
   # Compile TMB software
   #dyn.unload( paste0(RunDir,"/",dynlib(TMB:::getUserDLL())) ) # random=Random,
   file.copy( from=paste0(TmbDir,"/",Version,".cpp"), to=paste0(RunDir,"/",Version,".cpp"), overwrite=FALSE)
+<<<<<<< HEAD
 
   CurDir = getwd()
 
+=======
+  origwd = getwd()
+  on.exit(setwd(origwd),add=TRUE)
+>>>>>>> James-Thorson/master
   setwd( RunDir )
   compile( paste0(Version,".cpp") )
 
@@ -58,15 +83,15 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   }
 
   # Parameters
-    # DataList=TmbData                                              # VAST:::
+    # DataList=TmbData
   if( length(Parameters)==1 && Parameters=="generate" ) Parameters = Param_Fn( Version=Version, DataList=TmbData, RhoConfig=RhoConfig )
 
-  # Which parameters are turned off                # VAST:::
-  if( length(Map)==1 && Map=="generate" ) Map = Make_Map( TmbData=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
+  # Which parameters are turned off
+  if( length(Map)==1 && Map=="generate" ) Map = Make_Map( DataList=TmbData, TmbParams=Parameters, CovConfig=CovConfig, Q_Config=Q_Config, RhoConfig=RhoConfig)
 
   # Which are random
   if( length(Random)==1 && Random=="generate" ){
-    Random = c("Epsiloninput1_sct", "Omegainput1_sc", "Epsiloninput1_sft", "Omegainput1_sf", "eta1_vf", "Epsiloninput2_sct", "Omegainput2_sc", "Epsiloninput2_sft", "Omegainput2_sf", "eta2_vf")
+    Random = c("Epsiloninput1_sct", "Omegainput1_sc", "Epsiloninput1_sft", "Omegainput1_sf", "eta1_vf", "Epsiloninput2_sct", "Omegainput2_sc", "Epsiloninput2_sft", "Omegainput2_sf", "eta2_vf", "delta_i")
     if( RhoConfig[["Beta1"]]%in%c(1,2,4) ) Random = c(Random, "beta1_ct")
     if( RhoConfig[["Beta2"]]%in%c(1,2,4) ) Random = c(Random, "beta2_ct")
     if( Use_REML==TRUE ){
@@ -110,7 +135,7 @@ function( TmbData, Version, Q_Config=TRUE, CovConfig=TRUE,
   Bounds[,'Lower'] = rep(-50, length(Obj$par))
   Bounds[,'Upper'] = rep( 50, length(Obj$par))
   Bounds[grep("SigmaM",names(Obj$par)),'Upper'] = 10 # ZINB can crash if it gets > 20
-  if( TmbData$ObsModel[1]==8 ) Bounds[grep("SigmaM",names(Obj$par)),'Upper'] = 3 # Tweedie can crash if logSigmaM gets too high
+  if( any(TmbData$ObsModel_ez[1,]==8) ) Bounds[grep("SigmaM",names(Obj$par)),'Upper'] = 3 # Tweedie can crash if logSigmaM gets too high
   if( !is.null(loc_x) && !is.na(TmbData$Options_vec['Method']) && TmbData$Options_vec['Method']==0 && Method!="Spherical_mesh" ){
     Dist = stats::dist(loc_x)
     Bounds[grep("logkappa",names(Obj$par)),'Lower'] = log( sqrt(8)/max(Dist) ) # Range = nu*sqrt(8)/kappa
